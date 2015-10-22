@@ -12,15 +12,23 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bignerdranch.android.criminalintent.CrimePagerActivity;
+import com.example.apple.criminalintent.Crime;
+import com.example.apple.criminalintent.CrimeLab;
+import com.example.apple.criminalintent.R;
+
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 /**
- * Created by apple on 10/14/15.
+ * Created by Afei on 15-10-12.
  */
-public class CrimeListFragment extends Fragment {
+public class CrimeListFragment extends Fragment{
+
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
-    private int mPosition;
+    private int mClickedPosition;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,7 +36,9 @@ public class CrimeListFragment extends Fragment {
 
         mCrimeRecyclerView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
         mCrimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         updateUI();
+
         return view;
     }
 
@@ -38,7 +48,7 @@ public class CrimeListFragment extends Fragment {
         updateUI();
     }
 
-    private void updateUI(){
+    private void updateUI() {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
 
@@ -46,43 +56,44 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mCrimeRecyclerView.setAdapter(mAdapter);
         } else {
-            mAdapter.notifyItemChanged(mPosition);
+            mAdapter.notifyItemChanged(mClickedPosition);
         }
     }
 
-    private class  CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private TextView mTitleTextView;
+    private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private Crime mCrime;
+
+        public TextView mTitleTextView;
         private TextView mDateTextView;
         private CheckBox mSolvedCheckBox;
-        private Crime mCrime;
+
+        public CrimeHolder(View itemView) {
+            super(itemView);
+            itemView.setOnClickListener(this);
+
+            mTitleTextView = (TextView) itemView.findViewById(R.id.list_item_crime_title_text_view);
+            mDateTextView = (TextView) itemView.findViewById(R.id.list_item_crime_date_text_view);
+            mSolvedCheckBox = (CheckBox) itemView.findViewById(R.id.list_item_crime_solved_check_box);
+        }
 
         public void bindCrime(Crime crime) {
             mCrime = crime;
             mTitleTextView.setText(mCrime.getTitle());
-            mDateTextView.setText(mCrime.getDate().toString());
+            mDateTextView.setText(android.text.format.DateFormat.format("MMM dd, yyyy", mCrime.getDate()));
             mSolvedCheckBox.setChecked(mCrime.isSolved());
         }
 
-        public CrimeHolder(View itemView) {
-            super(itemView);
-            itemView.setOnClickListener((View.OnClickListener) this);
-            mTitleTextView = (TextView) itemView.findViewById(R.id.list_item_crime_title_text_view);
-            mDateTextView = (TextView) itemView.findViewById(R.id.list_item_crime_date_text_view);
-            mSolvedCheckBox = (CheckBox) itemView.findViewById(R.id.list_item_crime_solved_check_box);
-
-        }
-        @Override
         public void onClick(View v) {
-            Intent intent = CrimeActivity.newIntent(getActivity(), mCrime.getId());
+            Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getId());
             startActivity(intent);
-            mPosition = getAdapterPosition();
-
+            mClickedPosition = getAdapterPosition();
         }
     }
 
     private class CrimeAdapter extends RecyclerView.Adapter<CrimeHolder> {
-        private List<Crime> mCrimes;
 
+        private List<Crime> mCrimes;
         public CrimeAdapter(List<Crime> crimes) {
             mCrimes = crimes;
         }
@@ -104,5 +115,8 @@ public class CrimeListFragment extends Fragment {
         public int getItemCount() {
             return mCrimes.size();
         }
+
     }
+
+
 }
